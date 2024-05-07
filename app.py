@@ -13,9 +13,7 @@ import os
 import shutil
 import git
 
-st.title("Automated Data Science Toolkit by")
-
-#developed by: [HARSHA](https://www.linkedin.com/in/AHarshaNaidu)
+st.title("Automated Data Science Toolkit")
 
 # Data Collection and Preprocessing
 st.subheader("Data Collection and Preprocessing")
