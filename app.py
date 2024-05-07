@@ -13,7 +13,8 @@ import os
 import shutil
 import git
 
-st.title("Streamlit Automated Data Science Toolkit")
+st.title("Automated Data Science Toolkit by")
+developed by: [HARSHA](https://www.linkedin.com/in/AHarshaNaidu)
 
 # Data Collection and Preprocessing
 st.subheader("Data Collection and Preprocessing")
