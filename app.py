@@ -17,6 +17,14 @@ import git
 def data_collection_and_preprocessing():
     st.subheader("Data Collection and Preprocessing")
     # Code for data collection and preprocessing
+    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        st.write(df.head())
+        return df
+    else:
+        st.warning("Please upload a CSV file.")
+        return None
 
 # Exploratory Data Analysis (EDA)
 def display_data_summary(df):
@@ -84,10 +92,24 @@ def feature_importance(df, target_column, problem_type):
 
     if problem_type == "Classification":
         # Code for classification feature importance
-        pass
+        from sklearn.ensemble import RandomForestClassifier
+        rf = RandomForestClassifier()
+        rf.fit(X, y)
+        importances = rf.feature_importances_
+        indices = np.argsort(importances)[::-1]
+        st.write("Feature Importances:")
+        for f in range(X.shape[1]):
+            st.write("%d. %s (%f)" % (f + 1, X.columns[indices[f]], importances[indices[f]]))
     else:
         # Code for regression feature importance
-        pass
+        from sklearn.ensemble import RandomForestRegressor
+        rf = RandomForestRegressor()
+        rf.fit(X, y)
+        importances = rf.feature_importances_
+        indices = np.argsort(importances)[::-1]
+        st.write("Feature Importances:")
+        for f in range(X.shape[1]):
+            st.write("%d. %s (%f)" % (f + 1, X.columns[indices[f]], importances[indices[f]]))
 
 # Model Selection and Tuning
 def model_selection_and_tuning(df, target_column, problem_type):
@@ -99,10 +121,69 @@ def model_selection_and_tuning(df, target_column, problem_type):
 
     if problem_type == "Classification":
         # Code for classification model selection and tuning
-        pass
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.svm import SVC
+        from sklearn.model_selection import GridSearchCV
+
+        models = {
+            "Logistic Regression": LogisticRegression(),
+            "Decision Tree": DecisionTreeClassifier(),
+            "Random Forest": RandomForestClassifier(),
+            "Support Vector Machine": SVC()
+        }
+
+        model_selection = st.selectbox("Select a classification model", list(models.keys()))
+        model = models[model_selection]
+
+        if model_selection == "Logistic Regression":
+            param_grid = {"C": [0.1, 1, 10]}
+        elif model_selection == "Decision Tree":
+            param_grid = {"max_depth": [3, 5, 7]}
+        elif model_selection == "Random Forest":
+            param_grid = {"n_estimators": [100, 200, 300]}
+        else:
+            param_grid = {"C": [0.1, 1, 10], "kernel": ["linear", "rbf"]}
+
+        grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy")
+        grid_search.fit(X_train, y_train)
+        st.write(f"Best parameters: {grid_search.best_params_}")
+        st.write(f"Best score: {grid_search.best_score_:.2f}")
+        model = grid_search.best_estimator_
+
     else:
         # Code for regression model selection and tuning
-        pass
+        from sklearn.linear_model import LinearRegression
+        from sklearn.tree import DecisionTreeRegressor
+        from sklearn.ensemble import RandomForestRegressor
+        from sklearn.svm import SVR
+        from sklearn.model_selection import GridSearchCV
+
+        models = {
+            "Linear Regression": LinearRegression(),
+            "Decision Tree": DecisionTreeRegressor(),
+            "Random Forest": RandomForestRegressor(),
+            "Support Vector Regression": SVR()
+        }
+
+        model_selection = st.selectbox("Select a regression model", list(models.keys()))
+        model = models[model_selection]
+
+        if model_selection == "Linear Regression":
+            param_grid = {}
+        elif model_selection == "Decision Tree":
+            param_grid = {"max_depth": [3, 5, 7]}
+        elif model_selection == "Random Forest":
+            param_grid = {"n_estimators": [100, 200, 300]}
+        else:
+            param_grid = {"C": [0.1, 1, 10], "kernel": ["linear", "rbf"]}
+
+        grid_search = GridSearchCV(model, param_grid, cv=5, scoring="r2")
+        grid_search.fit(X_train, y_train)
+        st.write(f"Best parameters: {grid_search.best_params_}")
+        st.write(f"Best score: {grid_search.best_score_:.2f}")
+        model = grid_search.best_estimator_
 
     return model
 
@@ -218,8 +299,12 @@ def main():
     sections = ["Data Collection and Preprocessing", "Exploratory Data Analysis (EDA)", "Feature Engineering", "Model Selection and Tuning", "Model Deployment", "Documentation and Collaboration"]
     selected_section = st.sidebar.radio("Select a section", sections)
 
+    df = None
+    transformed_df = None
+    model = None
+
     if selected_section == "Data Collection and Preprocessing":
-        data_collection_and_preprocessing()
+        df = data_collection_and_preprocessing()
 
     elif selected_section == "Exploratory Data Analysis (EDA)":
         if df is not None:
